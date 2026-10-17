@@ -1,0 +1,4 @@
+fastapi>=0.115,<1.0
+uvicorn>=0.30,<1.0
+
+dnse-sdk-openapi==2.4.1
