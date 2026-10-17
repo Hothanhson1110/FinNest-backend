@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 import re
 from datetime import datetime, timedelta, timezone
@@ -9,6 +10,8 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
 
 from app.providers.dnse import DNSEMarketDataError, DNSEMarketDataProvider
+
+logger = logging.getLogger(__name__)
 
 APP_MODE = os.getenv("FINNEST_MARKET_MODE", "mock").strip().lower()
 ALLOWED_SYMBOL = re.compile(r"^[A-Z0-9]{2,12}$")
@@ -147,7 +150,11 @@ def ohlc(
     except DNSEMarketDataError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     except Exception as exc:
-        raise HTTPException(status_code=502, detail="DNSE market-data request failed.") from exc
+        logger.exception("Unexpected error while fetching DNSE OHLC")
+        raise HTTPException(
+            status_code=502,
+            detail="DNSE market-data request failed.",
+        ) from exc
 
     result["data"] = result["data"][-limit:]
     result["meta"]["interval"] = interval
